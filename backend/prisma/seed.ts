@@ -39,6 +39,7 @@ async function main() {
 
   // ------------------------------------------------------------------
   // Vehicles — varied makes, categories, and price ranges
+  // Upsert on (make, model) so re-running the seed is safe and idempotent.
   // ------------------------------------------------------------------
   const vehicles = [
     { make: 'Toyota', model: 'Camry', category: 'Sedan', price: 26000, quantity: 8 },
@@ -55,7 +56,11 @@ async function main() {
   ];
 
   for (const vehicle of vehicles) {
-    await prisma.vehicle.create({ data: vehicle });
+    await prisma.vehicle.upsert({
+      where: { make_model: { make: vehicle.make, model: vehicle.model } },
+      update: {},
+      create: vehicle,
+    });
   }
 
   // eslint-disable-next-line no-console
