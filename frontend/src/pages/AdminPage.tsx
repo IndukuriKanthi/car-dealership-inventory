@@ -1,20 +1,22 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { vehicleApi } from '../services/vehicleApi';
 import { ApiRequestError } from '../services/apiClient';
 import type { Vehicle, CreateVehicleRequest } from '../types';
+import Navbar from '../components/Navbar';
 import VehicleForm from '../components/VehicleForm';
 import RestockForm from '../components/RestockForm';
 import ConfirmDialog from '../components/ConfirmDialog';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import EmptyState from '../components/EmptyState';
+import Toast from '../components/Toast';
 
 type Panel = 'add' | { type: 'edit'; vehicle: Vehicle } | { type: 'restock'; vehicle: Vehicle } | null;
 
 export default function AdminPage() {
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const navigate = useNavigate();
 
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -24,11 +26,6 @@ export default function AdminPage() {
   const [deleteTarget, setDeleteTarget] = useState<Vehicle | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState('');
-
-  function showToast(msg: string) {
-    setToast(msg);
-    setTimeout(() => setToast(''), 3000);
-  }
 
   const fetchVehicles = useCallback(async () => {
     setLoading(true);
@@ -50,24 +47,21 @@ export default function AdminPage() {
 
   useEffect(() => { fetchVehicles(); }, [fetchVehicles]);
 
-  // ---- Add ----
   async function handleAdd(data: CreateVehicleRequest) {
     const res = await vehicleApi.create(data);
     setVehicles((prev) => [res.data.vehicle, ...prev]);
     setPanel(null);
-    showToast('Vehicle added.');
+    setToast('Vehicle added.');
   }
 
-  // ---- Edit ----
   async function handleEdit(data: CreateVehicleRequest) {
     if (typeof panel !== 'object' || panel === null || panel.type !== 'edit') return;
     const res = await vehicleApi.update(panel.vehicle.id, data);
     setVehicles((prev) => prev.map((v) => (v.id === res.data.vehicle.id ? res.data.vehicle : v)));
     setPanel(null);
-    showToast('Vehicle updated.');
+    setToast('Vehicle updated.');
   }
 
-  // ---- Delete ----
   async function handleDelete() {
     if (!deleteTarget) return;
     setDeleting(true);
@@ -75,7 +69,7 @@ export default function AdminPage() {
       await vehicleApi.delete(deleteTarget.id);
       setVehicles((prev) => prev.filter((v) => v.id !== deleteTarget.id));
       setDeleteTarget(null);
-      showToast('Vehicle deleted.');
+      setToast('Vehicle deleted.');
     } catch (err) {
       setError(err instanceof ApiRequestError ? err.message : 'Delete failed.');
       setDeleteTarget(null);
@@ -84,18 +78,12 @@ export default function AdminPage() {
     }
   }
 
-  // ---- Restock ----
   async function handleRestock(quantity: number) {
     if (typeof panel !== 'object' || panel === null || panel.type !== 'restock') return;
     const res = await vehicleApi.restock(panel.vehicle.id, { quantity });
     setVehicles((prev) => prev.map((v) => (v.id === res.data.vehicle.id ? res.data.vehicle : v)));
     setPanel(null);
-    showToast('Inventory restocked.');
-  }
-
-  function handleLogout() {
-    logout();
-    navigate('/login', { replace: true });
+    setToast('Inventory restocked.');
   }
 
   const price = (v: Vehicle) =>
@@ -103,24 +91,9 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navbar */}
-      <nav className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <span className="font-semibold text-gray-900">Car Dealership — Admin</span>
-          <div className="flex items-center gap-4">
-            <Link to="/dashboard" className="text-sm text-blue-600 hover:underline font-medium">
-              Dashboard
-            </Link>
-            <span className="text-sm text-gray-500 hidden sm:inline">{user?.name}</span>
-            <button onClick={handleLogout} className="text-sm text-red-600 hover:underline">
-              Sign out
-            </button>
-          </div>
-        </div>
-      </nav>
+      <Navbar title="Car Dealership — Admin" />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-xl font-semibold text-gray-900">Inventory Management</h1>
@@ -131,34 +104,25 @@ export default function AdminPage() {
           {panel === null && (
             <button
               onClick={() => setPanel('add')}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg px-4 py-2 transition-colors"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg px-4 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
               + Add Vehicle
             </button>
           )}
         </div>
 
-        {/* Toast */}
-        {toast && (
-          <div role="status" className="mb-4 rounded-lg bg-green-50 border border-green-200 px-4 py-2 text-sm text-green-700">
-            {toast}
-          </div>
-        )}
-
-        {/* Error */}
+        {toast && <Toast message={toast} onDismiss={() => setToast('')} />}
         {error && <div className="mb-4"><ErrorMessage message={error} /></div>}
 
-        {/* Add panel */}
         {panel === 'add' && (
-          <div className="bg-white border border-gray-200 rounded-2xl p-6 mb-6 shadow-sm">
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 mb-6 shadow-sm animate-fade-in">
             <h2 className="text-base font-semibold text-gray-900 mb-4">Add Vehicle</h2>
             <VehicleForm onSubmit={handleAdd} onCancel={() => setPanel(null)} submitLabel="Add Vehicle" />
           </div>
         )}
 
-        {/* Edit panel */}
         {typeof panel === 'object' && panel !== null && panel.type === 'edit' && (
-          <div className="bg-white border border-gray-200 rounded-2xl p-6 mb-6 shadow-sm">
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 mb-6 shadow-sm animate-fade-in">
             <h2 className="text-base font-semibold text-gray-900 mb-4">
               Edit — {panel.vehicle.make} {panel.vehicle.model}
             </h2>
@@ -171,9 +135,8 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* Restock panel */}
         {typeof panel === 'object' && panel !== null && panel.type === 'restock' && (
-          <div className="bg-white border border-gray-200 rounded-2xl p-6 mb-6 shadow-sm">
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 mb-6 shadow-sm animate-fade-in">
             <h2 className="text-base font-semibold text-gray-900 mb-4">Restock</h2>
             <RestockForm
               vehicleName={`${panel.vehicle.make} ${panel.vehicle.model}`}
@@ -183,7 +146,6 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* Vehicle list */}
         {loading && <LoadingSpinner />}
         {!loading && !error && vehicles.length === 0 && <EmptyState message="No vehicles in inventory." />}
         {!loading && vehicles.length > 0 && (
@@ -222,19 +184,19 @@ export default function AdminPage() {
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => setPanel({ type: 'restock', vehicle: v })}
-                            className="text-xs text-green-700 hover:underline font-medium"
+                            className="text-xs text-green-700 hover:underline font-medium focus:outline-none focus:underline"
                           >
                             Restock
                           </button>
                           <button
                             onClick={() => setPanel({ type: 'edit', vehicle: v })}
-                            className="text-xs text-blue-600 hover:underline font-medium"
+                            className="text-xs text-blue-600 hover:underline font-medium focus:outline-none focus:underline"
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => setDeleteTarget(v)}
-                            className="text-xs text-red-600 hover:underline font-medium"
+                            className="text-xs text-red-600 hover:underline font-medium focus:outline-none focus:underline"
                           >
                             Delete
                           </button>
@@ -249,7 +211,6 @@ export default function AdminPage() {
         )}
       </main>
 
-      {/* Delete confirmation dialog */}
       {deleteTarget && (
         <ConfirmDialog
           message={`Delete "${deleteTarget.make} ${deleteTarget.model}"? This cannot be undone.`}
