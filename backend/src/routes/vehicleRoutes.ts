@@ -21,6 +21,11 @@ vehicleRoutes.post('/', validateBody(createVehicleSchema), vehicleController.cre
 vehicleRoutes.put('/:id', validateBody(updateVehicleSchema), vehicleController.update);
 vehicleRoutes.delete('/:id', requireAdmin, vehicleController.remove);
 vehicleRoutes.post('/:id/purchase', vehicleController.purchase);
-vehicleRoutes.post('/:id/restock', requireAdmin, validateBody(restockSchema), vehicleController.restock);
+vehicleRoutes.post(
+  '/:id/restock',
+  requireAdmin,
+  validateBody(restockSchema),
+  vehicleController.restock,
+);
 
 export default vehicleRoutes;

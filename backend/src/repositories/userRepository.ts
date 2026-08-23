@@ -19,14 +19,12 @@ export const safeUserFields = {
 };
 
 const userRepository = {
-  findByEmail: (email: string) =>
-    prisma.user.findUnique({ where: { email } }),
+  findByEmail: (email: string) => prisma.user.findUnique({ where: { email } }),
 
   findByEmailSafe: (email: string) =>
     prisma.user.findUnique({ where: { email }, select: safeUserFields }),
 
-  create: (data: CreateUserData) =>
-    prisma.user.create({ data, select: safeUserFields }),
+  create: (data: CreateUserData) => prisma.user.create({ data, select: safeUserFields }),
 };
 
 export default userRepository;

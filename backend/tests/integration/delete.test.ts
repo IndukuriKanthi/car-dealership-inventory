@@ -7,11 +7,20 @@ const userToken = signToken({ userId: 'user-1', role: 'USER' });
 const adminToken = signToken({ userId: 'admin-1', role: 'ADMIN' });
 
 const validVehicle = {
-  make: 'Toyota', model: 'Camry', category: 'Sedan', price: 25000, quantity: 5,
+  make: 'Toyota',
+  model: 'Camry',
+  category: 'Sedan',
+  price: 25000,
+  quantity: 5,
 };
 
-beforeEach(async () => { await prisma.vehicle.deleteMany(); });
-afterAll(async () => { await prisma.vehicle.deleteMany(); await prisma.$disconnect(); });
+beforeEach(async () => {
+  await prisma.vehicle.deleteMany();
+});
+afterAll(async () => {
+  await prisma.vehicle.deleteMany();
+  await prisma.$disconnect();
+});
 
 describe('DELETE /api/vehicles/:id', () => {
   it('allows admin to delete a vehicle and returns 204', async () => {

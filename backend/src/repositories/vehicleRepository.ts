@@ -1,13 +1,15 @@
 import prisma from '../config/database';
-import { CreateVehicleInput, UpdateVehicleInput, SearchQueryInput } from '../schemas/vehicleSchemas';
+import {
+  CreateVehicleInput,
+  UpdateVehicleInput,
+  SearchQueryInput,
+} from '../schemas/vehicleSchemas';
 import { Prisma } from '@prisma/client';
 
 const vehicleRepository = {
-  findAll: () =>
-    prisma.vehicle.findMany({ orderBy: { createdAt: 'desc' } }),
+  findAll: () => prisma.vehicle.findMany({ orderBy: { createdAt: 'desc' } }),
 
-  findById: (id: string) =>
-    prisma.vehicle.findUnique({ where: { id } }),
+  findById: (id: string) => prisma.vehicle.findUnique({ where: { id } }),
 
   create: (data: CreateVehicleInput) =>
     prisma.vehicle.create({ data: { ...data, price: new Prisma.Decimal(data.price) } }),
@@ -18,8 +20,7 @@ const vehicleRepository = {
       data: data.price !== undefined ? { ...data, price: new Prisma.Decimal(data.price) } : data,
     }),
 
-  delete: (id: string) =>
-    prisma.vehicle.delete({ where: { id } }),
+  delete: (id: string) => prisma.vehicle.delete({ where: { id } }),
 
   search: (filters: SearchQueryInput) => {
     const where: Prisma.VehicleWhereInput = {};

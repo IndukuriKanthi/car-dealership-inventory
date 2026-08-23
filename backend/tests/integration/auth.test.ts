@@ -113,9 +113,7 @@ describe('POST /api/auth/login', () => {
   });
 
   it('rejects missing password with 400', async () => {
-    const res = await request(app)
-      .post('/api/auth/login')
-      .send({ email: validPayload.email });
+    const res = await request(app).post('/api/auth/login').send({ email: validPayload.email });
 
     expect(res.status).toBe(400);
     expect(res.body.success).toBe(false);

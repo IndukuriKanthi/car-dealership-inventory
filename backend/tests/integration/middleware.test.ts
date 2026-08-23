@@ -17,9 +17,7 @@ describe('Authentication middleware', () => {
   });
 
   it('rejects malformed Authorization header with 401', async () => {
-    const res = await request(app)
-      .get('/api/vehicles')
-      .set('Authorization', 'NotBearer token');
+    const res = await request(app).get('/api/vehicles').set('Authorization', 'NotBearer token');
     expect(res.status).toBe(401);
   });
 
@@ -32,9 +30,7 @@ describe('Authentication middleware', () => {
 
   it('allows requests with a valid token', async () => {
     const token = signToken({ userId: 'test-id', role: 'USER' });
-    const res = await request(app)
-      .get('/api/vehicles')
-      .set('Authorization', `Bearer ${token}`);
+    const res = await request(app).get('/api/vehicles').set('Authorization', `Bearer ${token}`);
     // 200 means middleware passed — vehicles endpoint itself may return empty array
     expect(res.status).toBe(200);
   });
