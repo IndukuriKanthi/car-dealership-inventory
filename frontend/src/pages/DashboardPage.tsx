@@ -1,9 +1,46 @@
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { vehicleApi } from '../services/vehicleApi';
+import { ApiRequestError } from '../services/apiClient';
+import type { Vehicle } from '../types';
+import VehicleGrid from '../components/VehicleGrid';
+import LoadingSpinner from '../components/LoadingSpinner';
+import ErrorMessage from '../components/ErrorMessage';
+import EmptyState from '../components/EmptyState';
 
 export default function DashboardPage() {
-  const { user, logout } = useAuth();
+  const { user, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
+
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const fetchVehicles = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await vehicleApi.getAll();
+      setVehicles(res.data.vehicles);
+    } catch (err) {
+      if (err instanceof ApiRequestError && err.status === 401) {
+        logout();
+        navigate('/login', { replace: true });
+        return;
+      }
+      setError(err instanceof ApiRequestError ? err.message : 'Failed to load vehicles.');
+    } finally {
+      setLoading(false);
+    }
+  }, [logout, navigate]);
+
+  useEffect(() => { fetchVehicles(); }, [fetchVehicles]);
+
+  // Replace the updated vehicle in local state — no full reload needed
+  function handlePurchased(updated: Vehicle) {
+    setVehicles((prev) => prev.map((v) => (v.id === updated.id ? updated : v)));
+  }
 
   function handleLogout() {
     logout();
@@ -12,20 +49,49 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <span className="font-semibold text-gray-900">Car Dealership Inventory</span>
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-600">{user?.name}</span>
-          <button
-            onClick={handleLogout}
-            className="text-sm text-red-600 hover:underline"
-          >
-            Sign out
-          </button>
+      {/* Navbar */}
+      <nav className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <span className="font-semibold text-gray-900 text-base">Car Dealership Inventory</span>
+          <div className="flex items-center gap-4">
+            {isAdmin && (
+              <Link
+                to="/admin"
+                className="text-sm font-medium text-blue-600 hover:underline"
+              >
+                Admin
+              </Link>
+            )}
+            <span className="text-sm text-gray-500 hidden sm:inline">{user?.name}</span>
+            <button
+              onClick={handleLogout}
+              className="text-sm text-red-600 hover:underline"
+            >
+              Sign out
+            </button>
+          </div>
         </div>
       </nav>
-      <main className="p-6">
-        <p className="text-gray-500">Dashboard — coming in Phase 10.</p>
+
+      {/* Main content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-xl font-semibold text-gray-900">Vehicle Inventory</h1>
+            {!loading && !error && (
+              <p className="text-sm text-gray-500 mt-0.5">{vehicles.length} vehicle{vehicles.length !== 1 ? 's' : ''}</p>
+            )}
+          </div>
+        </div>
+
+        {loading && <LoadingSpinner />}
+        {!loading && error && <ErrorMessage message={error} />}
+        {!loading && !error && vehicles.length === 0 && (
+          <EmptyState message="No vehicles in inventory." />
+        )}
+        {!loading && !error && vehicles.length > 0 && (
+          <VehicleGrid vehicles={vehicles} onPurchased={handlePurchased} />
+        )}
       </main>
     </div>
   );
