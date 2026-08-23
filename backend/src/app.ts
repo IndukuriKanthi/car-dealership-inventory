@@ -24,7 +24,9 @@ app.get('/health', (_req, res) => {
 });
 
 import authRoutes from './routes/authRoutes';
+import vehicleRoutes from './routes/vehicleRoutes';
 app.use('/api/auth', authRoutes);
+app.use('/api/vehicles', vehicleRoutes);
 
 // Centralized error handler — must be registered after all routes
 app.use(errorHandler);
