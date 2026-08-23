@@ -730,17 +730,21 @@ All prompts used during development are preserved in [`PROMPTS.md`](./PROMPTS.md
 
 ## My AI Usage
 
-AI tools were used throughout development as a development assistant. They helped with:
+AI tools were used throughout development as development assistants. The primary AI tool used for this project was **Amazon Q**.
 
-- Suggesting architecture and implementation approaches.
-- Writing and refining implementation code.
-- Creating and improving test cases.
-- Debugging and troubleshooting implementation issues.
-- Reviewing code for correctness, security, and consistency.
-- Improving documentation and README content.
-- Refining the application's UI/UX.
+I used Amazon Q to:
 
-AI-generated suggestions and code were reviewed and tested during development. The final implementation was verified through the project's test suite, TypeScript checks, builds, linting, and manual application testing.
+- Suggest architecture and implementation approaches.
+- Write and refine implementation code.
+- Create and improve test cases.
+- Debug and troubleshoot implementation issues.
+- Review code for correctness, security, and consistency.
+- Improve documentation and README content.
+- Refine the application's UI/UX.
+
+AI-generated suggestions and code were reviewed and tested during development rather than being accepted blindly. I used the suggestions as a development aid while making the final implementation decisions myself. The final implementation was verified through the project's test suite, TypeScript checks, builds, linting, and manual application testing.
+
+Using AI helped speed up development, especially when exploring implementation approaches and troubleshooting errors. It also helped me consider alternative solutions and improve code quality. At the same time, reviewing and testing the generated suggestions helped me understand the implementation instead of relying on AI output without verification.
 
 All development prompts are preserved in [`PROMPTS.md`](./PROMPTS.md).
 
