@@ -23,9 +23,8 @@ app.get('/health', (_req, res) => {
   res.json({ success: true, message: 'Server is running' });
 });
 
-// Routes are registered here in Phase 5+
-// app.use('/api/auth', authRoutes);
-// app.use('/api/vehicles', vehicleRoutes);
+import authRoutes from './routes/authRoutes';
+app.use('/api/auth', authRoutes);
 
 // Centralized error handler — must be registered after all routes
 app.use(errorHandler);
