@@ -70,3 +70,41 @@ describe('POST /api/vehicles', () => {
     expect(res.status).toBe(401);
   });
 });
+
+describe('GET /api/vehicles', () => {
+  it('returns all vehicles including zero-stock ones', async () => {
+    await request(app)
+      .post('/api/vehicles')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send(validVehicle);
+    await request(app)
+      .post('/api/vehicles')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ ...validVehicle, model: 'Corolla', quantity: 0 });
+
+    const res = await request(app)
+      .get('/api/vehicles')
+      .set('Authorization', `Bearer ${userToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.vehicles).toHaveLength(2);
+    // Zero-stock vehicle must be included
+    const zeroStock = res.body.data.vehicles.find((v: { quantity: number }) => v.quantity === 0);
+    expect(zeroStock).toBeDefined();
+  });
+
+  it('returns empty array when no vehicles exist', async () => {
+    const res = await request(app)
+      .get('/api/vehicles')
+      .set('Authorization', `Bearer ${userToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.vehicles).toHaveLength(0);
+  });
+
+  it('rejects unauthenticated request with 401', async () => {
+    const res = await request(app).get('/api/vehicles');
+    expect(res.status).toBe(401);
+  });
+});
