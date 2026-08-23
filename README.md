@@ -728,6 +728,24 @@ All prompts used during development are preserved in [`PROMPTS.md`](./PROMPTS.md
 
 ---
 
+## My AI Usage
+
+AI tools were used throughout development as a development assistant. They helped with:
+
+- Suggesting architecture and implementation approaches.
+- Writing and refining implementation code.
+- Creating and improving test cases.
+- Debugging and troubleshooting implementation issues.
+- Reviewing code for correctness, security, and consistency.
+- Improving documentation and README content.
+- Refining the application's UI/UX.
+
+AI-generated suggestions and code were reviewed and tested during development. The final implementation was verified through the project's test suite, TypeScript checks, builds, linting, and manual application testing.
+
+All development prompts are preserved in [`PROMPTS.md`](./PROMPTS.md).
+
+---
+
 ## Trade-offs
 
 ### JWT stored in `localStorage`
