@@ -89,7 +89,6 @@ describe('GET /api/vehicles', () => {
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data.vehicles).toHaveLength(2);
-    // Zero-stock vehicle must be included
     const zeroStock = res.body.data.vehicles.find((v: { quantity: number }) => v.quantity === 0);
     expect(zeroStock).toBeDefined();
   });
@@ -105,6 +104,55 @@ describe('GET /api/vehicles', () => {
 
   it('rejects unauthenticated request with 401', async () => {
     const res = await request(app).get('/api/vehicles');
+    expect(res.status).toBe(401);
+  });
+});
+
+describe('PUT /api/vehicles/:id', () => {
+  it('updates a vehicle and returns updated data', async () => {
+    const created = await request(app)
+      .post('/api/vehicles')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send(validVehicle);
+    const id = created.body.data.vehicle.id;
+
+    const res = await request(app)
+      .put(`/api/vehicles/${id}`)
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ price: 27000, quantity: 10 });
+
+    expect(res.status).toBe(200);
+    expect(Number(res.body.data.vehicle.price)).toBe(27000);
+    expect(res.body.data.vehicle.quantity).toBe(10);
+  });
+
+  it('returns 404 for nonexistent vehicle', async () => {
+    const res = await request(app)
+      .put('/api/vehicles/nonexistent-id')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ price: 27000 });
+
+    expect(res.status).toBe(404);
+    expect(res.body.success).toBe(false);
+  });
+
+  it('rejects negative quantity with 400', async () => {
+    const created = await request(app)
+      .post('/api/vehicles')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send(validVehicle);
+    const id = created.body.data.vehicle.id;
+
+    const res = await request(app)
+      .put(`/api/vehicles/${id}`)
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ quantity: -5 });
+
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects unauthenticated request with 401', async () => {
+    const res = await request(app).put('/api/vehicles/some-id').send({ price: 27000 });
     expect(res.status).toBe(401);
   });
 });
